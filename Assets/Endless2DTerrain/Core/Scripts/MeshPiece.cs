@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,7 +17,7 @@ namespace Endless2DTerrain
             settings = s;
         }
 
- 
+
         public enum Plane
         {
             Front,
@@ -50,6 +50,7 @@ namespace Endless2DTerrain
         private MeshFilter meshFilter { get; set; }
         private MeshRenderer meshRenderer { get; set; }
         private MeshCollider meshCollider { get; set; }
+        public EdgeCollider2D polyCollider { get; set; }
         public Mesh mesh { get; set; }
 
         //For easy access when positioning the mesh
@@ -87,14 +88,16 @@ namespace Endless2DTerrain
             }
         }
 
-   
-		
+
+
         //Always just start with the normal plane verticies.  If the standard mesh was rotated, the top mesh will be as well
-		public Vector3 StartTopMesh{
-			get{        
-				return PlaneVerticies[1];		
-			}
-		}
+        public Vector3 StartTopMesh
+        {
+            get
+            {
+                return PlaneVerticies[1];
+            }
+        }
 
 
 
@@ -124,20 +127,25 @@ namespace Endless2DTerrain
             //Now clear and update the mesh
             CreateMesh();
         }
-		
-		public void Create(Vector3 origin, float angle, List<Vector3> keyVerticies){
+
+        public void Create(Vector3 origin, float angle, List<Vector3> keyVerticies)
+        {
             //Update all our verticies
             SetVerticies(origin, angle, keyVerticies);
             CreateMesh();
-		}
+        }
 
-        private void CreateMesh(){
-            if (BelowMinVerts()){return;}
-		
-       
-            if (mesh == null){       
+        private void CreateMesh()
+        {
+            if (BelowMinVerts()) { return; }
+
+
+            if (mesh == null)
+            {
                 InstantiateMeshObject();
-            }else{
+            }
+            else
+            {
                 mesh.Clear();
                 AddMeshComponents();
             }
@@ -147,19 +155,19 @@ namespace Endless2DTerrain
             mesh.triangles = GetMeshTriangles(RotatedPlaneVerticies).ToArray();
             mesh.uv = GetUVMapping(RotatedPlaneVerticies).ToArray();
 
-            if (PlaneType == Plane.Front && settings.MainMaterial !=null)
+            if (PlaneType == Plane.Front && settings.MainMaterial != null)
             {
                 meshRenderer.GetComponent<Renderer>().sharedMaterial = settings.MainMaterial;
                 meshRenderer.GetComponent<Renderer>().sharedMaterial.renderQueue = RenderQueue.FrontPlane;
-               
+
             }
-            if (PlaneType == Plane.Detail && settings.DetailMaterial !=null)
+            if (PlaneType == Plane.Detail && settings.DetailMaterial != null)
             {
                 meshRenderer.GetComponent<Renderer>().sharedMaterial = settings.DetailMaterial;
                 meshRenderer.GetComponent<Renderer>().sharedMaterial.renderQueue = RenderQueue.DetailPlane;
-              
+
             }
-            if (PlaneType == Plane.Top && settings.DrawTopMeshRenderer && settings.TopMaterial !=null)
+            if (PlaneType == Plane.Top && settings.DrawTopMeshRenderer && settings.TopMaterial != null)
             {
                 meshRenderer.GetComponent<Renderer>().sharedMaterial = settings.TopMaterial;
             }
@@ -181,8 +189,18 @@ namespace Endless2DTerrain
                 colliderMesh.triangles = mesh.triangles;
                 colliderMesh.RecalculateBounds();
 
-                meshCollider.sharedMesh = colliderMesh;
-                meshCollider.smoothSphereCollisions = true;
+                //meshCollider.sharedMesh = colliderMesh;
+                //meshCollider.smoothSphereCollisions = true;
+                List<Vector2> points = new List<Vector2>(mesh.vertices.Length);
+                float posZ = mesh.vertices[0].z;
+                foreach (Vector3 vec in mesh.vertices)
+                {
+                    if (vec.z < posZ + 0.1 && vec.z > posZ - 0.1)
+                    {
+                        points.Add(new Vector2(vec.x, vec.y));
+                    }
+                }
+                polyCollider.points = points.ToArray();
             }
         }
 
@@ -195,17 +213,19 @@ namespace Endless2DTerrain
 
         public void Create(Vector3 origin, float angle)
         {
-			Create(origin, angle, null);
+            Create(origin, angle, null);
         }
-		
-		private bool BelowMinVerts(){
+
+        private bool BelowMinVerts()
+        {
             if (KeyTopVerticies == null ||
                 (KeyTopVerticies.Count < 2) ||
-				(vg.CurrentTerrainRule == null)){
+                (vg.CurrentTerrainRule == null))
+            {
                 return true;
             }
             return false;
-		}
+        }
 
 
         private void SetCornerVerticies(List<Vector3> keyTopVerticies, List<Vector3> keyBottomVerticies)
@@ -220,24 +240,25 @@ namespace Endless2DTerrain
             RotatedPlaneVerticies = PlaneVerticies;
 
         }
-       
+
+
 
         private void SetVerticies(Vector3 origin, float angle, List<Vector3> keyVerticies)
         {
-			if (keyVerticies !=null){KeyTopVerticies = keyVerticies;}
-			
-			//Don't try and set the vertices if we're below the min we need for a plane
-			if (BelowMinVerts()){return;}
+            if (keyVerticies != null) { KeyTopVerticies = keyVerticies; }
+
+            //Don't try and set the vertices if we're below the min we need for a plane
+            if (BelowMinVerts()) { return; }
             if (vg.CurrentTerrainRule == null) { return; }
 
-          
+
             TransformHelpers th = new TransformHelpers();
 
             AllTopVerticies = vg.GenerateCalculatedVertices(KeyTopVerticies);
 
             //For the front plane, set a fixed lower boundary on the verts (bottom of mesh will be a straight line)
             if (PlaneType == Plane.Front)
-            {               
+            {
                 Vector3 firstBottomVertex = AllTopVerticies[0];
                 Vector3 shift = new Vector3(firstBottomVertex.x, firstBottomVertex.y - settings.MainPlaneHeight, firstBottomVertex.z);
 
@@ -255,19 +276,19 @@ namespace Endless2DTerrain
                 Vector3 firstBottomVertex = th.CopyVertex(AllTopVerticies[0]);
                 Vector3 shift = new Vector3(firstBottomVertex.x, firstBottomVertex.y - settings.DetailPlaneHeight, firstBottomVertex.z);
 
-                AllBottomVerticies = th.MoveStartVertex(AllTopVerticies,firstBottomVertex, shift, true);
+                AllBottomVerticies = th.MoveStartVertex(AllTopVerticies, firstBottomVertex, shift, true);
                 KeyBottomVerticies = th.MoveStartVertex(KeyTopVerticies, firstBottomVertex, shift, true);
             }
 
             //For the top of the mesh, shift the verticies in the z direction
             if (PlaneType == Plane.Top)
             {
-               
+
                 //The bottom verts are a copy of the top
                 AllBottomVerticies = th.CopyList(AllTopVerticies);
                 KeyBottomVerticies = th.CopyList(KeyTopVerticies);
-				
-				Vector3 firstBottomVertex = AllTopVerticies[0];
+
+                Vector3 firstBottomVertex = AllTopVerticies[0];
 
                 //Then shift the top verts into the z plane
                 AllTopVerticies = th.MoveStartVertex(AllTopVerticies, AllTopVerticies[0], new Vector3(firstBottomVertex.x, firstBottomVertex.y, firstBottomVertex.z + settings.TopPlaneHeight), false);
@@ -284,24 +305,24 @@ namespace Endless2DTerrain
                 origin = new Vector3(origin.x, origin.y, origin.z + settings.TopPlaneHeight);
             }
 
-			
-			//Now move the whole plane to the point of origin (usually where the last mesh ended)
+
+            //Now move the whole plane to the point of origin (usually where the last mesh ended)
             //Move relative to the vertex at index 1 (the top of the plane) instead of zero (the bottom of the plane) since we want to match the top of the meshes
             PlaneVerticies = th.MoveStartVertex(PlaneVerticies, PlaneVerticies[1], origin, false);
 
             //Store the rotated verticies so we know where the actual end point of the mesh is (and where to start the next one)
             //Create the mesh from the rotate verticies, but generate it from the non-rotated ones
-            if (angle!=0)
+            if (angle != 0)
             {
-                RotatedPlaneVerticies = th.RotateVertices(PlaneVerticies, angle);	
-			    RotatedPlaneVerticies = th.MoveStartVertex(RotatedPlaneVerticies, RotatedPlaneVerticies[1], origin, false);
+                RotatedPlaneVerticies = th.RotateVertices(PlaneVerticies, angle);
+                RotatedPlaneVerticies = th.MoveStartVertex(RotatedPlaneVerticies, RotatedPlaneVerticies[1], origin, false);
             }
             else
             {
                 RotatedPlaneVerticies = PlaneVerticies;
             }
 
-           
+
         }
 
         private void InstantiateMeshObject()
@@ -312,8 +333,8 @@ namespace Endless2DTerrain
 
         private void AddMeshComponents()
         {
-            
-            if (meshFilter == null){meshFilter = MeshObject.AddComponent<MeshFilter>();}       
+
+            if (meshFilter == null) { meshFilter = MeshObject.AddComponent<MeshFilter>(); }
 
             if (PlaneType == Plane.Top)
             {
@@ -323,20 +344,32 @@ namespace Endless2DTerrain
                 }
                 if (settings.DrawTopMeshCollider)
                 {
-                    if (meshCollider == null) { meshCollider = MeshObject.AddComponent<MeshCollider>(); }
+                    if (meshCollider == null)
+                    {
+                        //meshCollider = MeshObject.AddComponent<MeshCollider>();
+                        polyCollider = MeshObject.AddComponent<EdgeCollider2D>();
+                    }
                 }
             }
             else
             {
                 if (meshRenderer == null) { meshRenderer = MeshObject.AddComponent<MeshRenderer>(); }
-                if (meshCollider == null) { meshCollider = MeshObject.AddComponent<MeshCollider>(); }
+                if (meshCollider == null)
+                {
+                    //meshCollider = MeshObject.AddComponent<MeshCollider>();
+                    //polyCollider = MeshObject.AddComponent<EdgeCollider2D>();
+                }
             }
-			
-			GameObject.DestroyImmediate(meshFilter.sharedMesh);
-			meshFilter.sharedMesh  = new Mesh();
-			mesh = meshFilter.sharedMesh;
 
-           // mesh = meshFilter.mesh;
+
+
+
+
+            GameObject.DestroyImmediate(meshFilter.sharedMesh);
+            meshFilter.sharedMesh = new Mesh();
+            mesh = meshFilter.sharedMesh;
+
+            // mesh = meshFilter.mesh;
         }
 
         private List<int> GetMeshTriangles(List<Vector3> planeVerticies)
@@ -378,7 +411,7 @@ namespace Endless2DTerrain
 
         private Color32[] GetColors(List<Vector3> planeVerticies)
         {
-          
+
             Color32[] colors = new Color32[planeVerticies.Count()];
             for (int i = 0; i < planeVerticies.Count; i++)
             {
@@ -392,21 +425,25 @@ namespace Endless2DTerrain
         {
 
             TransformHelpers th = new TransformHelpers();
-			
-			float textureHeight = 1;
-			float textureWidth = 1;
+
+
+
+
+            float textureHeight = 1;
+            float textureWidth = 1;
 
 
             float xTiling = 1f;
             float yTiling = 1f;
 
             //The uv tiling also has to factor in the height and width of the textures we are using
-			if (settings.MainMaterial!= null && settings.MainMaterial.mainTexture != null){	        
-	             textureHeight = settings.MainMaterial.mainTexture.height;
-	             textureWidth = settings.MainMaterial.mainTexture.width;
-			}
-    
-            if (settings.TopMaterial !=null && settings.TopMaterial.mainTexture != null)
+            if (settings.MainMaterial != null && settings.MainMaterial.mainTexture != null)
+            {
+                textureHeight = settings.MainMaterial.mainTexture.height;
+                textureWidth = settings.MainMaterial.mainTexture.width;
+            }
+
+            if (settings.TopMaterial != null && settings.TopMaterial.mainTexture != null)
             {
                 textureHeight = settings.TopMaterial.mainTexture.height;
                 textureWidth = settings.TopMaterial.mainTexture.width;
@@ -426,7 +463,7 @@ namespace Endless2DTerrain
             }
 
             if (PlaneType == Plane.Top)
-            {         
+            {
                 xTiling = settings.TopMaterialXTiling;
                 yTiling = settings.TopMaterialYTiling;
             }
@@ -455,20 +492,20 @@ namespace Endless2DTerrain
                 {
                     previousVertex = planeVerticies[i - 1];
                 }
-               
+
 
                 //Our standard uv mapping is just our point in space divided by the width and the height of our texture (assuming an x/y plane)
                 float xMapping = vertex.x / textureWidth;
                 float yMapping = vertex.y / textureHeight;
 
-             
+
                 if (PlaneType == Plane.Top)
                 {
                     //We have to factor in the rise in y (from the lowest point in the list to our current point), as well as the x movement across
                     //in our uv mapping.  This is because this is not a flat plane
 
                     //The first time through, set our current x position based off the vertex
-                    if (currentTopTextureX == 0) { currentTopTextureX = vertex.x; }              
+                    if (currentTopTextureX == 0) { currentTopTextureX = vertex.x; }
                     xMapping = (currentTopTextureX) / textureWidth;
 
                     //After that, increment it by the length of the line between the two points (which includes the movement in the x and y plane) in the uv mapping
@@ -534,13 +571,6 @@ namespace Endless2DTerrain
             }
 
             return uvs;
-
         }
-
-
-
     }
-
-
-
 }
