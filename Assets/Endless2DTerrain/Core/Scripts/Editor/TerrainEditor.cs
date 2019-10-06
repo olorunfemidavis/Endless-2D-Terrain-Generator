@@ -21,7 +21,8 @@ public class TerrainEditor : Editor {
 	
 	//Top plane
 	private SerializedProperty TopMaterial;
-	private SerializedProperty TopMaterialXTiling;
+    private SerializedProperty TopPhysicsMaterial2D;
+    private SerializedProperty TopMaterialXTiling;
     private SerializedProperty TopMaterialYTiling;
     private SerializedProperty TopMaterialRotation;
 	private SerializedProperty TopPlaneHeight;
@@ -78,7 +79,8 @@ public class TerrainEditor : Editor {
         MainPlaneFollowTerrainCurve = terrainDisplayer.FindProperty("MainPlaneFollowTerrainCurve");
 		
 		TopMaterial = terrainDisplayer.FindProperty("TopMaterial");
-		TopMaterialXTiling = terrainDisplayer.FindProperty("TopMaterialXTiling");
+        TopPhysicsMaterial2D = terrainDisplayer.FindProperty("TopPhysicsMaterial2D");
+        TopMaterialXTiling = terrainDisplayer.FindProperty("TopMaterialXTiling");
 		TopMaterialYTiling = terrainDisplayer.FindProperty("TopMaterialYTiling");
 		TopMaterialRotation = terrainDisplayer.FindProperty("TopMaterialRotation");
 		TopPlaneHeight = terrainDisplayer.FindProperty("TopPlaneHeight");
@@ -154,7 +156,8 @@ public class TerrainEditor : Editor {
                 {
 
                     EditorGUILayout.PropertyField(TopMaterial, new GUIContent("Material", "The material that will be rendered on this plane of the mesh."));
-                    EditorGUILayout.PropertyField(TopPlaneHeight, new GUIContent("Height", "The height of this plane of the mesh."));
+                EditorGUILayout.PropertyField(TopPhysicsMaterial2D, new GUIContent("TopPhysicsMaterial2D", "The physics material that will be added to this plane of the mesh."));
+                EditorGUILayout.PropertyField(TopPlaneHeight, new GUIContent("Height", "The height of this plane of the mesh."));
                     EditorGUILayout.PropertyField(TopMaterialXTiling, new GUIContent("UV X Tiling", "UV tiling for the x plane of the mesh."));
                     EditorGUILayout.PropertyField(TopMaterialYTiling, new GUIContent("UV Y Tiling", "UV tiling for the y plane of the mesh."));
                     EditorGUILayout.PropertyField(TopMaterialRotation, new GUIContent("UV Rotation", "Rotation of the UV tiling for the mesh."));

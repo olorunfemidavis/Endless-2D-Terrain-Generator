@@ -172,7 +172,6 @@ namespace Endless2DTerrain
                 meshRenderer.GetComponent<Renderer>().sharedMaterial = settings.TopMaterial;
             }
 
-
             //Add collider to the top plane
             AddCollider();
 
@@ -328,6 +327,7 @@ namespace Endless2DTerrain
         private void InstantiateMeshObject()
         {
             MeshObject = new GameObject("MeshPiece");
+            MeshObject.name = "MeshPiece"+ PlaneType.ToString();
             AddMeshComponents();
         }
 
@@ -348,22 +348,14 @@ namespace Endless2DTerrain
                     {
                         //meshCollider = MeshObject.AddComponent<MeshCollider>();
                         polyCollider = MeshObject.AddComponent<EdgeCollider2D>();
+
                     }
                 }
             }
             else
             {
                 if (meshRenderer == null) { meshRenderer = MeshObject.AddComponent<MeshRenderer>(); }
-                if (meshCollider == null)
-                {
-                    //meshCollider = MeshObject.AddComponent<MeshCollider>();
-                    //polyCollider = MeshObject.AddComponent<EdgeCollider2D>();
-                }
             }
-
-
-
-
 
             GameObject.DestroyImmediate(meshFilter.sharedMesh);
             meshFilter.sharedMesh = new Mesh();

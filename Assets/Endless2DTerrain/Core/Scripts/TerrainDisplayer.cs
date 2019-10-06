@@ -22,6 +22,7 @@ public class TerrainDisplayer : MonoBehaviour {
 
     //Top plane settings
     public Material TopMaterial;
+    public PhysicsMaterial2D TopPhysicsMaterial2D;
     public float TopMaterialXTiling;
     public float TopMaterialYTiling;
     public float TopMaterialRotation;
@@ -70,6 +71,7 @@ public class TerrainDisplayer : MonoBehaviour {
             s.MainMaterialRotation = MainMaterialRotation;
 
             s.TopMaterial = TopMaterial;
+            s.TopPhysicsMaterial2D = TopPhysicsMaterial2D;
             s.TopMaterialXTiling = TopMaterialXTiling;
             s.TopMaterialYTiling = TopMaterialYTiling;
             s.TopMaterialRotation = TopMaterialRotation;

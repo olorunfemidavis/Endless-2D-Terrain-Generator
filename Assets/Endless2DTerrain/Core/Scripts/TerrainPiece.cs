@@ -106,11 +106,15 @@ namespace Endless2DTerrain
                 {
                     MeshPiece mpTop = new MeshPiece(vg, MeshPiece.Plane.Top, settings);
                     mpTop.Create(mp.StartTopMesh, TerrainAngle, mp.KeyTopVerticies);
+                    if (settings.TopPhysicsMaterial2D != null)
+                    {
+                        mpTop.polyCollider.sharedMaterial = settings.TopPhysicsMaterial2D; // assign Physics Material if any
+                }
                     MeshPieces.Add(mpTop);
                 }
-      
-                  
-				
+
+
+
 				
 	            //Just to tidy up the heirarchy
 	            ParentMeshesToTerrainObject();

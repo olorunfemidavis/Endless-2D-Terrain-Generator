@@ -10,6 +10,7 @@ namespace Endless2DTerrain{
         public float MainMaterialRotation { get; set; }
 
         public Material TopMaterial { get; set; }
+        public PhysicsMaterial2D TopPhysicsMaterial2D { get; set; }
         public float TopMaterialXTiling { get; set; }
         public float TopMaterialYTiling { get; set; }
         public float TopMaterialRotation { get; set; }
