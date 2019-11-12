@@ -1,0 +1,130 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4a83b429ad5c94e96ba2a40c687291, type: 3}
+  m_Name: Demo Terrain Settings
+  m_EditorClassIdentifier: 
+  TerrainManagerName: DemoTerrain
+  OriginalStartPoint: {x: -100, y: 0, z: 0}
+  LeadAmount: 100
+  MainPlaneHeight: 50
+  TopPlaneHeight: 10
+  DetailPlaneHeight: 2
+  CornerMeshWidth: 0
+  DetailPlaneOffset: {x: 0, y: 0.1, z: -0.2}
+  MainMaterial: {fileID: 2100000, guid: 1f2e6b1277bc0ef48adc5be8149b543f, type: 2}
+  MainMaterialTiling: {x: 20, y: 20}
+  MainMaterialRotation: 0
+  MainPlaneFollowTerrainCurve: 0
+  DrawTopMeshRenderer: 1
+  DrawTopMeshCollider: 1
+  TopMaterial: {fileID: 2100000, guid: d0faa4390285c184ead19822b9b40454, type: 2}
+  TopPhysicsMaterial2D: {fileID: 0}
+  TopMaterialTiling: {x: 10, y: 10}
+  TopMaterialRotation: 0
+  DrawDetailMeshRenderer: 1
+  DetailMaterial: {fileID: 2100000, guid: d0faa4390285c184ead19822b9b40454, type: 2}
+  DetailMaterialTiling: {x: 10, y: 10}
+  DetailMaterialRotation: 0
+  DetailPlaneFollowTerrainCurve: 0
+  Rules:
+  - SelectedTerrainStyle: 1
+    SelectedTerrainLength: 1
+    MinimumKeyVertexHeight: 0
+    MaximumKeyVertexHeight: 30
+    MinimumKeyVertexSpacing: 50
+    MaximumKeyVertexSpacing: 50
+    CalculatedVertexSpacing: 1
+    RuleLength: 600
+    MeshLength: 100
+    Angle: 0
+    ExpandedRules: 1
+    AllowedPrefabs:
+    - Name: Tree - Prefab Rule 1
+      Index: 0
+      Allowed: 1
+    - Name: Coin - Prefab Rule 2
+      Index: 1
+      Allowed: 1
+  - SelectedTerrainStyle: 0
+    SelectedTerrainLength: 1
+    MinimumKeyVertexHeight: 0
+    MaximumKeyVertexHeight: 30
+    MinimumKeyVertexSpacing: 60
+    MaximumKeyVertexSpacing: 60
+    CalculatedVertexSpacing: 1
+    RuleLength: 500
+    MeshLength: 120
+    Angle: 0
+    ExpandedRules: 1
+    AllowedPrefabs:
+    - Name: Tree - Prefab Rule 1
+      Index: 0
+      Allowed: 1
+    - Name: Coin - Prefab Rule 2
+      Index: 1
+      Allowed: 1
+  - SelectedTerrainStyle: 0
+    SelectedTerrainLength: 1
+    MinimumKeyVertexHeight: 0
+    MaximumKeyVertexHeight: 70
+    MinimumKeyVertexSpacing: 50
+    MaximumKeyVertexSpacing: 50
+    CalculatedVertexSpacing: 1
+    RuleLength: 300
+    MeshLength: 100
+    Angle: 0
+    ExpandedRules: 1
+    AllowedPrefabs:
+    - Name: Tree - Prefab Rule 1
+      Index: 0
+      Allowed: 1
+    - Name: Coin - Prefab Rule 2
+      Index: 1
+      Allowed: 1
+  PrefabRules:
+  - Offset: {x: 0, y: 4, z: 6}
+    PrefabToClone: {fileID: 100000, guid: 646cb681a41f55f4ebffb5a30d3bada0, type: 3}
+    MinRepeatDistance: 60
+    MaxRepeatDistance: 100
+    MinGroupSize: 2
+    MaxGroupSize: 5
+    MinGroupSpacing: 15
+    MaxGroupSpacing: 20
+    MinSlope: -15
+    MaxSlope: 30
+    MatchGroundAngle: 1
+    UseMinDistance: 0
+    MinDistance: 0
+    UseMaxDistance: 0
+    MaxDistance: 0
+  - Offset: {x: 0, y: 4, z: 3}
+    PrefabToClone: {fileID: 100000, guid: 471096d93ea94a142ab75c043e0f4338, type: 3}
+    MinRepeatDistance: 30
+    MaxRepeatDistance: 30
+    MinGroupSize: 3
+    MaxGroupSize: 3
+    MinGroupSpacing: 5
+    MaxGroupSpacing: 5
+    MinSlope: -90
+    MaxSlope: 90
+    MatchGroundAngle: 0
+    UseMinDistance: 0
+    MinDistance: 0
+    UseMaxDistance: 0
+    MaxDistance: 0
+  dimensionFoldout: 1
+  topPlaneFoldout: 1
+  frontPlaneFoldout: 1
+  detailPlaneFoldout: 1
+  terrainGenerationRules: 1
+  prefabGenerationRules: 1
+  terrainDisplayer: {fileID: 0}

@@ -55,7 +55,7 @@ namespace Endless2DTerrain
         public Vector3 NextTerrainOrigin
         {
             get
-            { 
+            {
                 //Get the front mesh
                 MeshPiece frontMesh = FrontMesh;
                 if (frontMesh == null) { return settings.OriginalStartPoint; }
@@ -66,32 +66,27 @@ namespace Endless2DTerrain
             }
         }
 
-
-
-
-        public void Create(VertexGenerator vg, Vector3 origin)
+        public void Create(VertexGenerator vg, Vector3 origin, Transform newParent)
         {
-
             //Track the angle we are currenlty on          
             TerrainAngle = vg.CurrentTerrainRule.Angle;
 
             //Create the front mesh and populate our key verts for the front plane
             MeshPiece mp = new MeshPiece(vg, MeshPiece.Plane.Front, settings);
-            mp.PopulateKeyVerticies(MeshPiece.Plane.Front);            
-            
+            mp.PopulateKeyVerticies(MeshPiece.Plane.Front);
+
             //Now create the mesh
             mp.Create(origin, TerrainAngle);
-          
-			
-			//The first mesh could be null if we are below the minimum verticies we need to create a plane
-			if (mp.MeshObject != null){
-				
-                //Create a placeholder object for our mesh pieces
-				InstantiateTerrainObject();	
-			
-                //And add the front plane mesh piece to our list of meshes in the terrain piece
-			  	MeshPieces.Add(mp);
 
+            //The first mesh could be null if we are below the minimum verticies we need to create a plane
+            if (mp.MeshObject != null)
+            {
+
+                //Create a placeholder object for our mesh pieces
+                InstantiateTerrainObject(origin.x, newParent);
+
+                //And add the front plane mesh piece to our list of meshes in the terrain piece
+                MeshPieces.Add(mp);
 
                 if (settings.DrawDetailMeshRenderer)
                 {
@@ -100,30 +95,29 @@ namespace Endless2DTerrain
                     MeshPieces.Add(mpDetail);
                 }
 
-
-
                 if (settings.DrawTopMeshCollider || settings.DrawTopMeshRenderer)
                 {
                     MeshPiece mpTop = new MeshPiece(vg, MeshPiece.Plane.Top, settings);
                     mpTop.Create(mp.StartTopMesh, TerrainAngle, mp.KeyTopVerticies);
                     if (settings.TopPhysicsMaterial2D != null)
                     {
-                        mpTop.polyCollider.sharedMaterial = settings.TopPhysicsMaterial2D; // assign Physics Material if any
-                }
+                        mpTop.edgeCollider.sharedMaterial = settings.TopPhysicsMaterial2D; // assign Physics Material if any
+                    }
+                    if (LayerMask.NameToLayer(settings.TerrainManagerName) != -1)
+                    {
+                        mpTop.MeshObject.layer = LayerMask.NameToLayer(settings.TerrainManagerName); // assign Layer if any
+                    }
                     MeshPieces.Add(mpTop);
                 }
 
-
-
-				
-	            //Just to tidy up the heirarchy
-	            ParentMeshesToTerrainObject();
-					
-			}
+                //Just to tidy up the heirarchy
+                ParentMeshesToTerrainObject();
+            }
         }
 
-        public void CreateCorner(VertexGenerator vg, TerrainPiece previousTerrain, TerrainPiece currentTerrain)
+        public void CreateCorner(VertexGenerator vg, TerrainPiece previousTerrain, TerrainPiece currentTerrain, Transform newParent)
         {
+            Debug.Log(settings.TerrainManagerName + ".TerrainPiece.CreateCorner");
 
             //Our plane is made up of the last top and bottom verts of the previous mesh, and the first top and bottom verts of the current mesh
             List<Vector3> topVerticies = GetCornerVerts(previousTerrain, currentTerrain, MeshPiece.Plane.Front, true);
@@ -139,11 +133,10 @@ namespace Endless2DTerrain
                 TransformHelpers th = new TransformHelpers();
 
                 //Now we've created the front of our mesh
-                InstantiateTerrainObject();
+                InstantiateTerrainObject(0f, newParent);
                 MeshPieces.Add(meshPiece);
 
                 //Add detail mesh
-
                 if (settings.DrawDetailMeshRenderer)
                 {
                     MeshPiece meshPieceDetail = new MeshPiece(vg, MeshPiece.Plane.Detail, settings);
@@ -151,8 +144,7 @@ namespace Endless2DTerrain
                     bottomVerticies = GetCornerVerts(previousTerrain, currentTerrain, MeshPiece.Plane.Detail, false);
                     meshPieceDetail.CreateCorner(topVerticies, bottomVerticies);
                     MeshPieces.Add(meshPieceDetail);
-                }            
-
+                }
 
                 if (settings.DrawTopMeshCollider || settings.DrawTopMeshRenderer)
                 {
@@ -166,21 +158,24 @@ namespace Endless2DTerrain
                     //Then shift the top verts into the z plane
                     topVerticies = th.MoveStartVertex(topVerticies, firstBottomVertex, new Vector3(firstBottomVertex.x, firstBottomVertex.y, firstBottomVertex.z + settings.TopPlaneHeight), false);
                     meshPieceTop.CreateCorner(topVerticies, bottomVerticies);
+                    if (settings.TopPhysicsMaterial2D != null)
+                    {
+                        meshPieceTop.edgeCollider.sharedMaterial = settings.TopPhysicsMaterial2D; // assign Physics Material if any
+                    }
+                    if (LayerMask.NameToLayer(settings.TerrainManagerName) != -1)
+                    {
+                        meshPieceTop.MeshObject.layer = LayerMask.NameToLayer(settings.TerrainManagerName); // assign Layer if any
+                    }
                     MeshPieces.Add(meshPieceTop);
                 }
 
-
-
                 //Just to tidy up the heirarchy
                 ParentMeshesToTerrainObject();
-
             }
         }
 
         public List<Vector3> GetCornerVerts(TerrainPiece previousTerrain, TerrainPiece currentTerrain, MeshPiece.Plane planeType, bool topVerts)
         {
-
-
             MeshPiece lastMesh = null;
             MeshPiece currentMesh = null;
 
@@ -211,10 +206,12 @@ namespace Endless2DTerrain
             return verts;
         }
 
-        private void InstantiateTerrainObject()
+        private void InstantiateTerrainObject(float originX, Transform newParent)
         {
             //This is just a placeholder for all the mesh pieces
-            TerrainObject = new GameObject("TerrainPiece");
+            string newTerrainName = settings.TerrainManagerName + "-TerrainPiece-x" + originX.ToString("#");
+            TerrainObject = new GameObject(newTerrainName);
+            TerrainObject.transform.parent = newParent;
         }
 
         private void ParentMeshesToTerrainObject()
@@ -228,5 +225,5 @@ namespace Endless2DTerrain
     }
 
 
-   
+
 }

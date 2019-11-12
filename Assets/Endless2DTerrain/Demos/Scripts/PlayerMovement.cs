@@ -5,11 +5,11 @@ public class PlayerMovement : MonoBehaviour
 {
 	
     public Camera playerCamera;
-	
-    public float speed = 12.0F;
-    public float jumpSpeed = 8.0F;
-    public float gravity = 20.0F;
-    private Vector3 moveDirection = Vector3.zero;
+    public float speed = 1f;
+
+    private CharacterController2D controller;
+
+    private bool jump, crouch;
 
     void Start()
     {
@@ -20,28 +20,25 @@ public class PlayerMovement : MonoBehaviour
 
 		
         playerCamera.transparencySortMode = TransparencySortMode.Orthographic;
+        controller = GetComponent<CharacterController2D>();
     }
 
     void Update()
     {    
-        CharacterController controller = GetComponent<CharacterController>();
-        if (controller.isGrounded)
+        
+        if (controller.IsGrounded)
         {
-            moveDirection = new Vector3(1, 0, Input.GetAxis("Vertical"));
-            moveDirection = transform.TransformDirection(moveDirection);
-            moveDirection *= speed;
             if (Input.GetButton("Jump"))
             {
-                moveDirection.y = jumpSpeed; 
+                jump=true;
             }
             if (Input.touchCount > 0)
             {
-                moveDirection.y = jumpSpeed;
+                jump = true;
             }
            
         }
-        moveDirection.y -= gravity * Time.smoothDeltaTime;
-        controller.Move(moveDirection * Time.smoothDeltaTime);
+        controller.Move(Input.GetAxis("Horizontal") * speed, jump);
 
 
         //After we move, adjust the camera to follow the player

@@ -7,34 +7,38 @@ namespace Endless2DTerrain
 {
     public class PrefabManager
     {
-       
+        private bool isInitialized = false;
+
         public TerrainManager terrainManager { get; set; }
         public PrefabPool Pool { get; set; }
         private TransformHelpers th { get; set; }
         private Settings settings { get; set; }
-        public const string ManagerName = "Prefab Manager";
-
+        private Transform parentTransform;
         private GameObject PrefabManagerObject { get; set; }
 
-        public PrefabManager(Settings s)
+        private string ManagerName { get { return GetPrefabManagerName(settings.TerrainManagerName); } }
+
+        public PrefabManager(Settings s, Transform parentTransform)
         {
             th = new TransformHelpers();
             Pool = new PrefabPool();
             settings = s;
-            InstantiatePrefabManagerObject();
-        
+            this.parentTransform = parentTransform;
+            InstantiatePrefabManagerObject(ManagerName);
         }
 
-    
+        private string GetPrefabManagerName(string TerrainManagerName)
+        {
+            return "Prefab-" + TerrainManagerName;
+        }
+
         public void PlacePrefabs(TerrainManager tm)
         {
-
             terrainManager = tm;
-            InstantiatePrefabManagerObject();
+            InstantiatePrefabManagerObject(ManagerName);
 
             List<PrefabQueue> prefabsToAdd = new List<PrefabQueue>();
-           
-            
+
             for (int i = 0; i < terrainManager.AllFrontTopVerticies.Count(); i++)
             {
                 Vector3 current = terrainManager.AllFrontTopVerticies[i];
@@ -47,8 +51,9 @@ namespace Endless2DTerrain
                     if (rule.PrefabToClone == null) { break; }
 
                     //If we haven't started yet, set our initial values
-                    if (rule.LastPrefabLocation == Vector3.zero){
-                       
+                    if (rule.LastPrefabLocation == Vector3.zero)
+                    {
+
                         rule.LastPrefabLocation = current;
                     }
 
@@ -59,8 +64,6 @@ namespace Endless2DTerrain
 
                     if (rule.AddPrefab(repeatDistance))
                     {
-                        
-
                         //Find the location of the first prefab
                         float nextXLocation = rule.NextPrefabXLocation(repeatDistance);
                         Vector3 nextLocation = FindLocationAlongTerrain(nextXLocation);
@@ -71,9 +74,6 @@ namespace Endless2DTerrain
                         bool addAllPrefabs = true;
                         prefabsToAdd.Clear();
                         prefabsToAdd.Add(new PrefabQueue() { location = nextLocation, angle = angle });
-
-                     
-                        
 
                         if (rule.GroupSize > 1)
                         {
@@ -108,7 +108,7 @@ namespace Endless2DTerrain
                                 PrefabQueue pq = prefabsToAdd[k];
 
                                 //Determine if this prefab is allowed to be placed on this terrain rule
-                                var currentRule = tm.VertexGen.CurrentTerrainRule;
+                                TerrainRule currentRule = tm.VertexGen.CurrentTerrainRule;
                                 bool allowedForThisTerrainRule = currentRule.AllowedPrefabs.Where(ap => ap.Allowed && ap.Index == j).Any();
                                 bool meetsDistanceReqs = true;
 
@@ -134,23 +134,17 @@ namespace Endless2DTerrain
                                     //Just update this so we can keep placing prefabs, but don't actually create the prefab
                                     rule.LastPrefabLocation = pq.location;
                                 }
-
-                 
                             }
                         }
                     }
                 }
-          
             }
-
         }
 
         public Vector3 FindLocationAlongTerrain(float location)
         {
             Vector3 low = Vector3.zero;
             Vector3 high = Vector3.zero;
-
-            
 
             //Find the verticies below and above the given location
             for (int i = 0; i < terrainManager.AllFrontTopVerticies.Count(); i++)
@@ -186,10 +180,8 @@ namespace Endless2DTerrain
 
         public float FindSlopeAngle(float location)
         {
-
-            Vector3 low = Vector3.zero;      
+            Vector3 low = Vector3.zero;
             Vector3 high = Vector3.zero;
-
 
             //Find the verticies below and above the given location
             for (int i = 0; i < terrainManager.AllFrontTopVerticies.Count(); i++)
@@ -207,25 +199,22 @@ namespace Endless2DTerrain
                 }
             }
 
-        
             float rise = high.y - low.y;
             float run = high.x - low.x;
             float angle = Mathf.Atan2(rise, run) * 180 / Mathf.PI;
-          
+
             return angle;
         }
 
-
         public void Cleanup(float beginX)
         {
-
             List<GameObject> prefabsToRemove = new List<GameObject>();
-			
-			if (Pool == null){return;}
+
+            if (Pool == null) { return; }
 
             for (int i = 0; i < Pool.Prefabs.Count(); i++)
             {
-                GameObject prefab = Pool.Prefabs[i].Prefab;           
+                GameObject prefab = Pool.Prefabs[i].Prefab;
                 if (prefab.transform.position.x < beginX)
                 {
                     prefabsToRemove.Add(prefab);
@@ -238,25 +227,43 @@ namespace Endless2DTerrain
             }
         }
 
-
-        public void RemovePrefabObject()
+        public void RemovePrefabObject(string TerrainManagerName)
         {
-            var obj = GameObject.Find(ManagerName);
-            if (obj != null){
-                GameObject.DestroyImmediate(obj);
+            GameObject obj = GameObject.Find(GetPrefabManagerName(TerrainManagerName));
+            if (obj != null)
+            {
+                if (Application.isPlaying)
+                    GameObject.Destroy(obj);
+                else
+                    GameObject.DestroyImmediate(obj);
             }
-            
         }
 
 
-        private void InstantiatePrefabManagerObject()
+        private void InstantiatePrefabManagerObject(string NewManagerName)
         {
-           
-            //This is just a placeholder for all the mesh pieces
-            if (!GameObject.Find(ManagerName))
+            if (!isInitialized)
             {
-                PrefabManagerObject = new GameObject(ManagerName);
-                PrefabManagerObject.transform.parent = settings.terrainDisplayer.transform;
+                PrefabManagerObject = GameObject.Find(NewManagerName);
+                if (PrefabManagerObject)
+                {
+                    if (!Application.isPlaying)
+                    {
+                        foreach (Transform child in PrefabManagerObject.transform)
+                            GameObject.DestroyImmediate(child.gameObject);
+                    }
+                    else
+                    {
+                        foreach (Transform child in PrefabManagerObject.transform)
+                            GameObject.Destroy(child.gameObject);
+                    }
+                }
+                else
+                {
+                    PrefabManagerObject = new GameObject(NewManagerName);
+                }
+                PrefabManagerObject.transform.parent = parentTransform;
+                isInitialized = true;
             }
         }
 
@@ -265,7 +272,6 @@ namespace Endless2DTerrain
             public Vector3 location;
             public float angle;
         }
-
     }
 }
 

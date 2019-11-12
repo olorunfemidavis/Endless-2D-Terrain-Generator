@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 namespace Endless2DTerrain
-{  
+{
 
     public class VertexGenerator
     {
@@ -18,7 +18,7 @@ namespace Endless2DTerrain
             settings = s;
             if (TerrainRules == null || TerrainRules.Count == 0)
             {
-                throw new System.Exception("Terrain rules required to generate vertices");
+                Debug.LogError("Terrain rules required to generate vertices");
             }
 
             //Move to the first rule
@@ -44,7 +44,7 @@ namespace Endless2DTerrain
         public float CurrentLocation { get; set; }
         public float RuleStartLocation { get; set; }
 
-        public float TotalDistanceTraveled { get; set; }        
+        public float TotalDistanceTraveled { get; set; }
         public float DistanceTraveledSinceRuleStart
         {
             get
@@ -82,7 +82,8 @@ namespace Endless2DTerrain
         public void MoveToRuleAtIndex(int index)
         {
             //Make sure we have a valid index   
-            if (index > (TerrainRules.Count -1) || index < 0){
+            if (index > (TerrainRules.Count - 1) || index < 0)
+            {
                 return;
             }
             CurrentTerrainRule = TerrainRules[index];
@@ -141,7 +142,7 @@ namespace Endless2DTerrain
             }
 
             //Can't find it or the current terrain rule is null?
-            return -1;     
+            return -1;
         }
 
         public List<Vector3> GenerateKeyVerticies(bool updateRepeatingPointLocation)
@@ -177,7 +178,7 @@ namespace Endless2DTerrain
                 if (CurrentTerrainRule.SelectedTerrainStyle == TerrainRule.TerrainStyle.Repeated && updateRepeatingPointLocation)
                 {
 
-                
+
 
                     float yMin = CurrentTerrainRule.MinimumKeyVertexHeight;
                     float yMax = CurrentTerrainRule.MaximumKeyVertexHeight;
@@ -196,7 +197,7 @@ namespace Endless2DTerrain
                     //Flip after every iteration
                     RepeatingPointsAtTop = !RepeatingPointsAtTop;
 
-                  
+
                 }
 
                 //Update our current location and our total distance generated
@@ -205,22 +206,22 @@ namespace Endless2DTerrain
 
 
                 //Don't toggle our points begin location if we are ending the mesh after this iteration.  If we ended at the stop we want to start at the top, and vice versa
-                if (!(CurrentLocation < endLocation) && 
-                    CurrentTerrainRule.SelectedTerrainStyle == TerrainRule.TerrainStyle.Repeated &&                   
+                if (!(CurrentLocation < endLocation) &&
+                    CurrentTerrainRule.SelectedTerrainStyle == TerrainRule.TerrainStyle.Repeated &&
                     updateRepeatingPointLocation)
                 {
-                  
+
                     RepeatingPointsAtTop = !RepeatingPointsAtTop;
                 }
             }
-            
+
             //Store before switching to the next rule so calculated verts will use the proper spacing for this current rule
             CalculatedVertexSpacing = CurrentTerrainRule.CalculatedVertexSpacing;
 
             //Update again after we finish generating vertices, so if we are on a new rule we'll switch to the correct
             //angle immediately on the next cycle
             UpdateTerrainRule();
-        
+
 
             return verticies;
         }
@@ -237,7 +238,7 @@ namespace Endless2DTerrain
             int insertIndex = 1;
 
             for (int i = 0; i < keyVertices.Count - 1; i++)
-            {  
+            {
 
                 //Add the key vert
                 allVerticies.Add(keyVertices[i]);
@@ -250,7 +251,7 @@ namespace Endless2DTerrain
 
                 float y0 = currentVertex.y;
                 float y1 = nextVertex.y;
-               
+
 
                 //How many segments between our two key points
                 int totalSegments = Mathf.CeilToInt(Mathf.Ceil(x1 - x0) / CalculatedVertexSpacing);
@@ -283,7 +284,7 @@ namespace Endless2DTerrain
                 }
             }
 
-     
+
 
             return allVerticies;
         }

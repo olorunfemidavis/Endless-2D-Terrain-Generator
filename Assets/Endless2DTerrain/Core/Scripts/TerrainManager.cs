@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace Endless2DTerrain
@@ -14,15 +13,16 @@ namespace Endless2DTerrain
 
         public GameObject TerrainObject { get; set; }
         public List<Vector3> AllFrontTopVerticies { get; set; }
-        private const string managerName = "Terrain Manager";
-       
 
-        public TerrainManager(Settings s)
+        private Transform parentTransform;
+
+        public TerrainManager(Settings s, Transform parentTransform)
         {
-            Pool = new TerrainPool();            
+            Pool = new TerrainPool();
             VertexGen = new VertexGenerator(s);
             settings = s;
-            InstantiateTerrainObject();
+            this.parentTransform = parentTransform;
+            InstantiateTerrainObject(s.TerrainManagerName);
         }
 
         /// <summary>
@@ -39,7 +39,6 @@ namespace Endless2DTerrain
                     piecesToRemove.Add(piece);
                 }
             }
-
             for (int i = 0; i < piecesToRemove.Count(); i++)
             {
                 Pool.Remove(piecesToRemove[i]);
@@ -47,7 +46,7 @@ namespace Endless2DTerrain
 
             if (Pool.TerrainPieces.Count == 0)
             {
-                RemoveTerrainObject();
+                RemoveTerrainObject(settings.TerrainManagerName);
             }
         }
 
@@ -57,21 +56,16 @@ namespace Endless2DTerrain
         /// <param name="endX"></param>
         public void Generate(float endX)
         {
-       
-         
-
             //At the end of our rules?  Stop here.
             if (VertexGen.CurrentTerrainRule == null) { return; }
-     
 
             //The piece we are on right now (before generating a new piece)
-            TerrainPiece currentTerrain = GetLastTerrainPiece();       
+            TerrainPiece currentTerrain = GetLastTerrainPiece();
 
             if (currentTerrain == null)
             {
-                //First time through the loop?  Create our first piece of terrain
                 currentTerrain = GenerateTerrainPiece(null, settings.OriginalStartPoint);
-            }           
+            }
 
             while (currentTerrain.NextTerrainOrigin.x < endX)
             {
@@ -83,17 +77,17 @@ namespace Endless2DTerrain
                 {
                     break;
                 }
-            
-        
-            }          
-            
+            }
+
             //Create a terrain manager if we don't have one, and organize our objects
-            InstantiateTerrainObject();
-            ParentMeshesToTerrainObject();
+            if (!TerrainObject)
+                InstantiateTerrainObject(settings.TerrainManagerName);
+
+            ParentTerrainPiecesToTerrainObject();
 
             //Update our list of the top verticies
             UpdateAllFrontTopVerticies();
-  
+
         }
 
         public void UpdateAllFrontTopVerticies()
@@ -106,9 +100,9 @@ namespace Endless2DTerrain
             {
                 AllFrontTopVerticies.Clear();
             }
-			
-			var pieces = Pool.TerrainPieces.OrderBy(terp=>terp.FrontMesh.BottomLeftCorner.x).ToList();
-			
+
+            List<TerrainPiece> pieces = Pool.TerrainPieces.OrderBy(terp => terp.FrontMesh.BottomLeftCorner.x).ToList();
+
             for (int i = 0; i < pieces.Count(); i++)
             {
                 TerrainPiece tp = pieces[i];
@@ -121,18 +115,21 @@ namespace Endless2DTerrain
                     {
                         AllFrontTopVerticies.Add(mp.RotatedPlaneVerticies[k]);
                     }
-                    
                 }
-               
             }
         }
 
         //Get the farthest x point at the end of our last mesh
         public float GetFarthestX()
         {
+
             float x = 0;
             TerrainPiece last = GetLastTerrainPiece();
-            if (last == null) { return x; }
+            if (last == null)
+            {
+                return x;
+            }
+            //Debug.Log(settings.TerrainManagerName + ".TerrainManager.GetFarthestX:return " + last.NextTerrainOrigin.x);
             return last.NextTerrainOrigin.x;
         }
 
@@ -159,19 +156,18 @@ namespace Endless2DTerrain
         public TerrainPiece GenerateTerrainPiece(TerrainPiece currentTerrain, Vector3 origin)
         {
             //Don't keep generation if we have no rules left
-            if (VertexGen.CurrentTerrainRule == null){return null;}
+            if (VertexGen.CurrentTerrainRule == null) { return null; }
 
             //Create our next terrain piece (consists of multiple meshes)
             TerrainPiece nextTerrain = new TerrainPiece(settings);
-            nextTerrain.Create(VertexGen, origin);
+            nextTerrain.Create(VertexGen, origin, TerrainObject.transform);
 
             //We can legitimately get a null terrain object if we don't have enough verts to create another.  This then moves us to the next rule.
             //Retry once to see if we get more terrain, if not, we are at the end of the rules and cannot generate any more terrain
             if (nextTerrain.TerrainObject == null && VertexGen.CurrentTerrainRule != null)
-            {               
-                nextTerrain.Create(VertexGen, origin);
+            {
+                nextTerrain.Create(VertexGen, origin, TerrainObject.transform);
             }
-
 
             //Make sure we had enough verticies to create a terrain piece
             if (nextTerrain.TerrainObject != null)
@@ -184,17 +180,16 @@ namespace Endless2DTerrain
                     {
                         //Move our next terrain mesh pieces out some so we can fit in the corner terrain piece
                         MoveMeshesForCornerPiece(currentTerrain, nextTerrain, origin);
-                       
+
                         //Create corner terrain piece between the previous piece and this one
                         TerrainPiece tpCorner = new TerrainPiece(settings);
-                        tpCorner.CreateCorner(VertexGen, currentTerrain, nextTerrain);
+                        tpCorner.CreateCorner(VertexGen, currentTerrain, nextTerrain, TerrainObject.transform);
                         Pool.Add(tpCorner);
                     }
                 }
 
-
                 //And now create our standard piece
-                Pool.Add(nextTerrain); 
+                Pool.Add(nextTerrain);
                 return nextTerrain;
             }
             else
@@ -221,8 +216,8 @@ namespace Endless2DTerrain
                 if (mp.PlaneType == MeshPiece.Plane.Detail)
                 {
                     //Move the detail mesh slightly in front of the front plane mesh   
-                   moveAmount = moveAmount + settings.DetailPlaneOffset;
-                   mp.MoveMesh(moveAmount, mp.PlaneType);
+                    moveAmount = moveAmount + settings.DetailPlaneOffset;
+                    mp.MoveMesh(moveAmount, mp.PlaneType);
                 }
                 else
                 {
@@ -232,38 +227,48 @@ namespace Endless2DTerrain
             }
         }
 
-        private void InstantiateTerrainObject()
+        private void InstantiateTerrainObject(string NewManagerName)
         {
- 
-            //This is just a placeholder for all the mesh pieces
-            if (!GameObject.Find(managerName))
+            TerrainObject = GameObject.Find(NewManagerName);
+            if (TerrainObject)
             {
-                TerrainObject = new GameObject(managerName);
-                TerrainObject.transform.parent = settings.terrainDisplayer.transform;
-            }            
+                if (!Application.isPlaying)
+                {
+                    foreach (Transform child in TerrainObject.transform)
+                        GameObject.DestroyImmediate(child.gameObject);
+                }
+                else
+                {
+                    foreach (Transform child in TerrainObject.transform)
+                        GameObject.Destroy(child.gameObject);
+                }
+            }
+            else
+            {
+                TerrainObject = new GameObject(NewManagerName);
+            }
+            TerrainObject.transform.parent = parentTransform;
         }
 
-        public void RemoveTerrainObject()
+        public void RemoveTerrainObject(string NewManagerName)
         {
-            var obj = GameObject.Find(managerName);
+            Debug.Log(settings.TerrainManagerName + ".TerrainManager.RemoveTerrainObject:" + NewManagerName);
+            GameObject obj = GameObject.Find(NewManagerName);
             if (obj != null)
             {
-                GameObject.DestroyImmediate(obj);
-            }           
+                if (Application.isPlaying)
+                    GameObject.Destroy(obj);
+                else
+                    GameObject.DestroyImmediate(obj);
+            }
         }
 
-        private void ParentMeshesToTerrainObject()
+        private void ParentTerrainPiecesToTerrainObject()
         {
             for (int i = 0; i < Pool.TerrainPieces.Count; i++)
             {
                 Pool.TerrainPieces[i].TerrainObject.transform.parent = TerrainObject.transform;
             }
         }
-
-        private void DebugVertex(string message, Vector3 vertex)
-        {
-            Debug.Log(message + " " + vertex.x + " " + vertex.y + " " + vertex.z);
-        }
-      
     }
 }
