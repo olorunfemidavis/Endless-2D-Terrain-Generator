@@ -12,7 +12,7 @@ namespace Endless2DTerrain
         public TerrainManager terrainManager { get; set; }
         public PrefabPool Pool { get; set; }
         private TransformHelpers th { get; set; }
-        private Settings settings { get; set; }
+        private Settings settings;
         private Transform parentTransform;
         private GameObject PrefabManagerObject { get; set; }
 
@@ -23,6 +23,12 @@ namespace Endless2DTerrain
             th = new TransformHelpers();
             Pool = new PrefabPool();
             settings = s;
+            for (int i = 0; i < settings.PrefabRules.Count(); i++)
+            {
+                settings.PrefabRules[i].StartLocation = Vector3.zero;
+                settings.PrefabRules[i].CurrentLocation = Vector3.zero;
+                settings.PrefabRules[i].LastPrefabLocation = Vector3.zero;
+            }
             this.parentTransform = parentTransform;
             InstantiatePrefabManagerObject(ManagerName);
         }
@@ -38,7 +44,6 @@ namespace Endless2DTerrain
             InstantiatePrefabManagerObject(ManagerName);
 
             List<PrefabQueue> prefabsToAdd = new List<PrefabQueue>();
-
             for (int i = 0; i < terrainManager.AllFrontTopVerticies.Count(); i++)
             {
                 Vector3 current = terrainManager.AllFrontTopVerticies[i];
@@ -48,7 +53,11 @@ namespace Endless2DTerrain
                     PrefabRule rule = settings.PrefabRules[j];
 
                     //Can't do anything without a prefab
-                    if (rule.PrefabToClone == null) { break; }
+                    if (rule.PrefabToClone == null)
+                    {
+                        Debug.LogWarning("PrefabToClone required");
+                        break;
+                    }
 
                     //If we haven't started yet, set our initial values
                     if (rule.LastPrefabLocation == Vector3.zero)
@@ -56,7 +65,6 @@ namespace Endless2DTerrain
 
                         rule.LastPrefabLocation = current;
                     }
-
                     rule.CurrentLocation = current;
 
                     //Save it because it is randomized and changes every time
@@ -72,6 +80,7 @@ namespace Endless2DTerrain
                         //Store a list of the prefabs to add.  Only add them if every prefab in this ruleset can be added.
                         //If they can't, add them at the start of the next mesh
                         bool addAllPrefabs = true;
+
                         prefabsToAdd.Clear();
                         prefabsToAdd.Add(new PrefabQueue() { location = nextLocation, angle = angle });
 
@@ -99,7 +108,6 @@ namespace Endless2DTerrain
 
                             }
                         }
-
                         //Can we add all the prefabs?  Then go ahead and instatiate them
                         if (addAllPrefabs)
                         {
@@ -238,7 +246,6 @@ namespace Endless2DTerrain
                     GameObject.DestroyImmediate(obj);
             }
         }
-
 
         private void InstantiatePrefabManagerObject(string NewManagerName)
         {
