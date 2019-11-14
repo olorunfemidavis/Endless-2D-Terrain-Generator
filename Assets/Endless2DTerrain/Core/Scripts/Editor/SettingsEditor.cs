@@ -12,6 +12,7 @@ namespace Endless2DTerrain
         private SerializedObject serializedSettings;
 
         private SerializedProperty TerrainManagerName;
+        private SerializedProperty TerrainLayer;
         private SerializedProperty OriginalStartPoint;
 
         private SerializedProperty LeadAmount;
@@ -65,6 +66,7 @@ namespace Endless2DTerrain
             serializedSettings = new SerializedObject(target);
 
             TerrainManagerName = serializedSettings.FindProperty("TerrainManagerName");
+            TerrainLayer = serializedSettings.FindProperty("TerrainLayer");
             OriginalStartPoint = serializedSettings.FindProperty("OriginalStartPoint");
             LeadAmount = serializedSettings.FindProperty("LeadAmount");
 
@@ -110,6 +112,7 @@ namespace Endless2DTerrain
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(TerrainManagerName, new GUIContent("Terrain Identifier", "A Terrain Manager Unique Name. Provide a different name if There is more than one instance"));
+            EditorGUILayout.PropertyField(TerrainLayer, new GUIContent("Terrain Layer", "Layer to assign to the terrain"));
 
             dimensionFoldout.boolValue = EditorGUILayout.Foldout(dimensionFoldout.boolValue, "Position");
             if (dimensionFoldout.boolValue)

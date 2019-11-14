@@ -103,13 +103,12 @@ namespace Endless2DTerrain
                     {
                         mpTop.edgeCollider.sharedMaterial = settings.TopPhysicsMaterial2D; // assign Physics Material if any
                     }
-                    if (LayerMask.NameToLayer(settings.TerrainManagerName) != -1)
+                    if (settings.TerrainLayer != 0)
                     {
-                        mpTop.MeshObject.layer = LayerMask.NameToLayer(settings.TerrainManagerName); // assign Layer if any
+                        mpTop.MeshObject.layer = settings.TerrainLayer; // assign Layer if any
                     }
                     MeshPieces.Add(mpTop);
                 }
-
                 //Just to tidy up the heirarchy
                 ParentMeshesToTerrainObject();
             }
@@ -117,8 +116,6 @@ namespace Endless2DTerrain
 
         public void CreateCorner(VertexGenerator vg, TerrainPiece previousTerrain, TerrainPiece currentTerrain, Transform newParent)
         {
-            Debug.Log(settings.TerrainManagerName + ".TerrainPiece.CreateCorner");
-
             //Our plane is made up of the last top and bottom verts of the previous mesh, and the first top and bottom verts of the current mesh
             List<Vector3> topVerticies = GetCornerVerts(previousTerrain, currentTerrain, MeshPiece.Plane.Front, true);
             List<Vector3> bottomVerticies = GetCornerVerts(previousTerrain, currentTerrain, MeshPiece.Plane.Front, false);
@@ -162,9 +159,9 @@ namespace Endless2DTerrain
                     {
                         meshPieceTop.edgeCollider.sharedMaterial = settings.TopPhysicsMaterial2D; // assign Physics Material if any
                     }
-                    if (LayerMask.NameToLayer(settings.TerrainManagerName) != -1)
+                    if (settings.TerrainLayer != 0)
                     {
-                        meshPieceTop.MeshObject.layer = LayerMask.NameToLayer(settings.TerrainManagerName); // assign Layer if any
+                        meshPieceTop.MeshObject.layer = settings.TerrainLayer; // assign Layer if any
                     }
                     MeshPieces.Add(meshPieceTop);
                 }
@@ -221,9 +218,5 @@ namespace Endless2DTerrain
                 MeshPieces[i].MeshObject.transform.parent = TerrainObject.transform;
             }
         }
-
     }
-
-
-
 }

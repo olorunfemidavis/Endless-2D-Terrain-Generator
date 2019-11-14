@@ -10,6 +10,7 @@ namespace Endless2DTerrain
         [Header("Terrain Identifier")]
         [Tooltip("A Terrain Manager Unique Name. Provide a different name if There is more than one instance")]
         public string TerrainManagerName = "Terrain";
+        [SerializeField, Layer] public int TerrainLayer;
 
         [Header("Terrain Dimensions")]
         public Vector3 OriginalStartPoint;
@@ -85,4 +86,3 @@ namespace Endless2DTerrain
         }
     }
 }
-
